@@ -1,19 +1,19 @@
 package TestData;
 
-import Annotations.Test;
-import jdk.jfr.Description;
+import JUnit.Before;
+import JUnit.Test;
 
 public class FactorialTest {
     private MyMath instance;
 
-    //@Description("")
+    @Before
     public void beforeEach() {
         instance = new MyMath();
     }
 
     @Test
     public void factorialTest() {
-        instance = new MyMath();
+        //instance = new MyMath();
         int x = instance.factorial(10);
         //Assert.assertEquals(x, 3628800);
         assert(x == 3628800);
@@ -21,7 +21,7 @@ public class FactorialTest {
 
     @Test(expected = Exception.class)
     public void testFactorialExeption() throws Exception {
-        instance = new MyMath();
+        //instance = new MyMath();
         instance.factorialExeption(-42);
     }
 }

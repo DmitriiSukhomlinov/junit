@@ -1,13 +1,20 @@
 package TestData;
 
-import Annotations.Test;
+import JUnit.Before;
+import JUnit.Test;
+import JUnit.After;
 
 public class FibonacciTest {
     private MyMath instance;
 
-    //@Before
+    @Before
     public void beforeEach() {
         instance = new MyMath();
+    }
+
+    @Before
+    public void beforeEach2() {
+        assert (0 == 0);
     }
 
     @Test
@@ -16,6 +23,16 @@ public class FibonacciTest {
         int x = instance.fibonacci(7);
         //Assert.assertEquals(x, 21);
         assert (x == 21);
+    }
+
+    @After
+    public void afterEach() {
+        assert (0 == 0);
+    }
+
+    @After
+    public void afterEach2() {
+        assert (0 == 0);
     }
 
 }

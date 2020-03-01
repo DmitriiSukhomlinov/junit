@@ -1,4 +1,4 @@
-package Annotations;
+package JUnit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,9 +7,4 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Test {
-    Class<? extends Throwable> expected() default Null.class;
-
-}
-
-class Null extends Throwable {}
+public @interface Before {}
