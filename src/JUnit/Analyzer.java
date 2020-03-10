@@ -3,9 +3,8 @@ package JUnit;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
-public class TestAnalyzer {
+public class Analyzer {
     private ArrayList<String> testPassed = new ArrayList<>();
     private ArrayList<String> undeclaredClassMessages = new ArrayList<String>();
     private HashMap<String, String> testFailed = new HashMap<>();
@@ -32,54 +31,10 @@ public class TestAnalyzer {
         try {
             instance = _class.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            undeclaredClassMessages.add(e.getMessage());
+            undeclaredClassMessages.add(_class.getName());
         }
 
         runTests(instance, _class.getMethods());
-
-//        for (Method method :getMethodsOfAnnotationType(methods, AnnotationType.Before)) {
-//            try {
-//                method.invoke(instance);
-//            } catch (Exception e) {
-//                exceptionMessages.add(e.getMessage());
-//            }
-//        }
-
-
-
-
-
-
-
-
-//        for (Method method : _class.getMethods()) {
-//            if (method.isAnnotationPresent(Test.class)) {
-//                Test test = method.getAnnotation(Test.class);
-//                boolean exceptionWasThrown = false;
-//                try {
-//                    method.invoke(instance);
-//                } catch (Exception e) {
-//                    exceptionWasThrown = true;
-//                    if (test.expected().equals(e.getCause().getClass())) {
-//                       testPassed++;
-//                    } else {
-//                        exceptionMessages.add(e.getMessage());
-//                    }
-//                }
-//                if (!exceptionWasThrown) {
-//                    testPassed++;
-//                }
-//            }
-//        }
-
-        //processBeforeOrAfter(instance, methods, AnnotationType.Before);
-//        for (Method method :getMethodsOfAnnotationType(methods, AnnotationType.After)) {
-//            try {
-//                method.invoke(instance);
-//            } catch (Exception e) {
-//                exceptionMessages.add(e.getMessage());
-//            }
-//        }
     }
 
     private ArrayList<Method> getMethodsOfAnnotationType(Method[] methods, AnnotationType type) {
@@ -98,15 +53,13 @@ public class TestAnalyzer {
         return result;
     }
 
-    private void processBeforeOrAfter(Object instance, Method[] methods, AnnotationType type) throws Exception{
+    private void processBeforeOrAfter(Object instance, Method[] methods, AnnotationType type) {
         for (Method method :getMethodsOfAnnotationType(methods, type)) {
-            method.invoke(instance);
-//            try {
-//
-//            } catch (Exception e) {
-//                //testFailed.put(method)
-//                //exceptionMessages.add(e.getMessage());
-//            }
+             try {
+                 method.invoke(instance);
+             } catch (Exception e) {
+                 return;
+             }
         }
     }
 
@@ -123,18 +76,18 @@ public class TestAnalyzer {
                 boolean exceptionWasThrown = false;
                 try {
                     method.invoke(instance);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     exceptionWasThrown = true;
                     if (method.getAnnotation(Test.class).expected().equals(e.getCause().getClass())) {
                         try {//after
                             processBeforeOrAfter(instance, methods, AnnotationType.After);
                             testPassed.add(method.getName());
                         } catch (Exception e2) {
-                            testFailed.put(method.getName(), e.getMessage());
+                            testFailed.put(method.getName(), e2.getCause().getMessage());
                             continue;
                         }
                     } else {
-                        testFailed.put(method.getName(), e.getMessage());
+                        testFailed.put(method.getName(), e.getCause().getMessage());
                     }
                 }
                 if (!exceptionWasThrown) {

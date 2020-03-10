@@ -1,7 +1,6 @@
 package JUnit;
 
-public class TestThread extends Thread {
-    //private Class<?> testClass = null;
+public class TestThread extends java.lang.Thread {
     private TestRunner runner = null;
 
     public TestThread(TestRunner _runner) {
@@ -11,7 +10,7 @@ public class TestThread extends Thread {
 
     @Override
     public void run() {
-        TestAnalyzer analyzer = new TestAnalyzer();
+        Analyzer analyzer = new Analyzer();
         while (true) {
             Class<?> testObject = runner.getTestObject();
             if (testObject == null) {

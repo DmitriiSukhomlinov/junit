@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static java.lang.Thread.sleep;
-
 public class TestRunner {
     private ArrayList<String> arguments;
     private ConcurrentLinkedQueue<Class<?>> testClasses = new ConcurrentLinkedQueue<Class<?>>();
     private ArrayList<String> testPassed = new ArrayList<>();
+    private ArrayList<String> undeclaredClasses = new ArrayList<String>();
     private HashMap<String, String> testFailed = new HashMap<>();
+    int threadsNumber = 0;
     volatile int semaphore = 0;
 
     public TestRunner(String[] args) {
@@ -25,7 +25,7 @@ public class TestRunner {
             throw new Exception("Too few arguments.");
         }
 
-        int threadsNumber = 0;
+
         for (String arg : arguments) {
             if ((arguments.indexOf(arg)) == 0) {
                 threadsNumber = Integer.parseInt(arg);
@@ -41,30 +41,20 @@ public class TestRunner {
             new TestThread(this).start();
         }
 
-        while (semaphore != threadsNumber) {
-            sleep(10);
+        while (testingInProcess()) {
+            TestThread.sleep(10);
         }
 
-        System.out.println("The following tests are passed:");
-        for (String str: testPassed) {
-            System.out.println(str);
-        }
-        System.out.println("The following test are failed with errors:");
-        for (String key : testFailed.keySet()) {
-            System.out.println(key + ": " + testFailed.get(key));
-        }
+        printOutput();
     }
 
-    public synchronized Class<?> getTestObject() {
-        Class<?> result = null;
-        if (!testClasses.isEmpty()) {
-            result = testClasses.poll();
-        }
-        return result;
+    public Class<?> getTestObject() {
+        return testClasses.poll();
     }
 
-    public synchronized void sendInfo(TestAnalyzer analyzer) {
+    public synchronized void sendInfo(Analyzer analyzer) {
         testPassed.addAll(analyzer.getTestPassed());
+        undeclaredClasses.addAll(analyzer.getUndeclaredClassMessages());
         testFailed.putAll(analyzer.getTestFailed());
     }
 
@@ -72,4 +62,30 @@ public class TestRunner {
         semaphore++;
     }
 
+    private boolean testingInProcess() {
+        return semaphore != threadsNumber;
+    }
+
+    private void printOutput() {
+        if(!testPassed.isEmpty()) {
+            System.out.println("The following tests are passed:");
+            for (String str : testPassed) {
+                System.out.println(str);
+            }
+        }
+
+        if (!undeclaredClasses.isEmpty()) {
+            System.out.println("The following classes are undeclared:");
+            for (String str : undeclaredClasses) {
+                System.out.println(str);
+            }
+        }
+
+        if (!testFailed.isEmpty()) {
+            System.out.println("The following test are failed with errors:");
+            for (String key : testFailed.keySet()) {
+                System.out.println(key + ": " + testFailed.get(key));
+            }
+        }
+    }
 }

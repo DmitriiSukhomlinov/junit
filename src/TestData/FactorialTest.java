@@ -19,7 +19,7 @@ public class FactorialTest {
         assert(x == 3628800);
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = Error.class)
     public void testFactorialExeption() throws Exception {
         //instance = new MyMath();
         instance.factorialExeption(-42);
