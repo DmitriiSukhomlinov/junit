@@ -8,7 +8,6 @@ public class TestRunner {
     private ArrayList<String> arguments;
     private ConcurrentLinkedQueue<Class<?>> testClasses = new ConcurrentLinkedQueue<Class<?>>();
     private ArrayList<String> testPassed = new ArrayList<>();
-    private ArrayList<String> undeclaredClasses = new ArrayList<String>();
     private HashMap<String, String> testFailed = new HashMap<>();
     int threadsNumber = 0;
     volatile int semaphore = 0;
@@ -54,7 +53,6 @@ public class TestRunner {
 
     public synchronized void sendInfo(Analyzer analyzer) {
         testPassed.addAll(analyzer.getTestPassed());
-        undeclaredClasses.addAll(analyzer.getUndeclaredClassMessages());
         testFailed.putAll(analyzer.getTestFailed());
     }
 
@@ -74,13 +72,7 @@ public class TestRunner {
             }
         }
 
-        if (!undeclaredClasses.isEmpty()) {
-            System.out.println("The following classes are undeclared:");
-            for (String str : undeclaredClasses) {
-                System.out.println(str);
-            }
-        }
-
+        System.out.println("");
         if (!testFailed.isEmpty()) {
             System.out.println("The following test are failed with errors:");
             for (String key : testFailed.keySet()) {

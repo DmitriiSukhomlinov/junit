@@ -20,7 +20,7 @@ public class MyMath {
 
     public int factorialExeption(int n) throws Exception {
         if (n < 0) {
-            throw new Exception();
+            throw new Exception("123");
         } else if (n == 0) {
             return 1;
         } else {

@@ -1,5 +1,7 @@
 package TestData;
 
+import JUnit.After;
+import JUnit.Assert;
 import JUnit.Before;
 import JUnit.Test;
 
@@ -19,9 +21,14 @@ public class FactorialTest {
         assert(x == 3628800);
     }
 
-    @Test(expected = Error.class)
+    @Test(expected = Exception.class)
     public void testFactorialExeption() throws Exception {
         //instance = new MyMath();
         instance.factorialExeption(-42);
+    }
+
+    @After
+    public void afterEach() {
+        Assert.isFalse(true);
     }
 }

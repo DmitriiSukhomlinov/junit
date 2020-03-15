@@ -6,15 +6,12 @@ import java.util.HashMap;
 
 public class Analyzer {
     private ArrayList<String> testPassed = new ArrayList<>();
-    private ArrayList<String> undeclaredClassMessages = new ArrayList<String>();
     private HashMap<String, String> testFailed = new HashMap<>();
+
+    private String UNEXPECTED_EXCEPTION_ERROR_MESSAGE = "Incorrect exception, expected: \"%1$s\", current: \"%2$s\".";
 
     public ArrayList<String> getTestPassed() {
         return testPassed;
-    }
-
-    public ArrayList<String> getUndeclaredClassMessages() {
-        return undeclaredClassMessages;
     }
 
     public HashMap<String, String> getTestFailed() {
@@ -31,7 +28,7 @@ public class Analyzer {
         try {
             instance = _class.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            undeclaredClassMessages.add(_class.getName());
+            return;
         }
 
         runTests(instance, _class.getMethods());
@@ -53,14 +50,15 @@ public class Analyzer {
         return result;
     }
 
-    private void processBeforeOrAfter(Object instance, Method[] methods, AnnotationType type) {
+    private void processBeforeOrAfter(Object instance, Method[] methods, AnnotationType type) throws Throwable {
         for (Method method :getMethodsOfAnnotationType(methods, type)) {
              try {
-                 method.invoke(instance);
+                method.invoke(instance);
              } catch (Exception e) {
-                 return;
+                throw e.getCause();
              }
         }
+
     }
 
     private void runTests(Object instance, Method[] methods) {
@@ -68,7 +66,7 @@ public class Analyzer {
             if (method.isAnnotationPresent(Test.class)) {
                 try { //before
                     processBeforeOrAfter(instance, methods, AnnotationType.Before);
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     testFailed.put(method.getName(), e.getMessage());
                     continue;
                 }
@@ -78,22 +76,29 @@ public class Analyzer {
                     method.invoke(instance);
                 } catch (Throwable e) {
                     exceptionWasThrown = true;
-                    if (method.getAnnotation(Test.class).expected().equals(e.getCause().getClass())) {
+                    var expected = method.getAnnotation(Test.class).expected();
+                    var current = e.getCause().getClass();
+                    if (expected.equals(current)) {
                         try {//after
                             processBeforeOrAfter(instance, methods, AnnotationType.After);
-                            testPassed.add(method.getName());
-                        } catch (Exception e2) {
-                            testFailed.put(method.getName(), e2.getCause().getMessage());
+                        } catch (Throwable e2) {
+                            testFailed.put(method.getName(), e2.getMessage());
                             continue;
                         }
+                        testPassed.add(method.getName());
                     } else {
-                        testFailed.put(method.getName(), e.getCause().getMessage());
+                        if (expected.equals(Null.class)) {
+                            testFailed.put(method.getName(), e.getCause().getMessage());
+                        } else {
+                            testFailed.put(method.getName(),
+                                    String.format(UNEXPECTED_EXCEPTION_ERROR_MESSAGE, expected, current));
+                        }
                     }
                 }
                 if (!exceptionWasThrown) {
                     try {//after
                         processBeforeOrAfter(instance, methods, AnnotationType.After);
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         testFailed.put(method.getName(), e.getMessage());
                         continue;
                     }

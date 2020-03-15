@@ -14,6 +14,7 @@ public class FibonacciTest {
     public void beforeEach() {
         instance = new MyMath();
         x = instance.fibonacci(7);
+        //Assert.isFalse(true);
     }
 
 //    @Before
@@ -39,7 +40,6 @@ public class FibonacciTest {
     @Test
     public void fibonacciTest4() {
         Assert.notEqualsWithErrorMessage(x, 20, "Error fibonacciTest4");
-        assert (x == 20);
     }
 
     @Test
@@ -66,6 +66,7 @@ public class FibonacciTest {
     public void afterEach() {
         //assert (1 == 0);
         int i = 0;
+        Assert.isTrue(true);
     }
 
 //    @After
