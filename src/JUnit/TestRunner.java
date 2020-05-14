@@ -9,6 +9,7 @@ public class TestRunner {
     private ConcurrentLinkedQueue<Class<?>> testClasses = new ConcurrentLinkedQueue<Class<?>>();
     private ArrayList<String> testPassed = new ArrayList<>();
     private HashMap<String, String> testFailed = new HashMap<>();
+    private HashMap<String, String> classFailed = new HashMap<>();
     int threadsNumber = 0;
     volatile int semaphore = 0;
 
@@ -54,6 +55,7 @@ public class TestRunner {
     public synchronized void sendInfo(Analyzer analyzer) {
         testPassed.addAll(analyzer.getTestPassed());
         testFailed.putAll(analyzer.getTestFailed());
+        classFailed.putAll(analyzer.getClassFailed());
     }
 
     public synchronized void incSemaphore() {
@@ -77,6 +79,14 @@ public class TestRunner {
             System.out.println("The following test are failed with errors:");
             for (String key : testFailed.keySet()) {
                 System.out.println(key + ": " + testFailed.get(key));
+            }
+        }
+
+        System.out.println();
+        if (!classFailed.isEmpty()) {
+            System.out.println("The instance of the following classes wasn't created because of the exception:");
+            for (String key : classFailed.keySet()) {
+                System.out.println(key + ": " + classFailed.get(key));
             }
         }
     }

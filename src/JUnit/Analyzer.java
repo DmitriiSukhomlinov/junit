@@ -7,6 +7,7 @@ import java.util.HashMap;
 class Analyzer {
     private ArrayList<String> testPassed = new ArrayList<>();
     private HashMap<String, String> testFailed = new HashMap<>();
+    private HashMap<String, String> classFailed = new HashMap<>();
 
     private static final String UNEXPECTED_EXCEPTION_ERROR_MESSAGE = "Incorrect exception, expected: \"%1$s\", current: \"%2$s\".";
     private static final String EXCEPTION_WASNT_THROWN_BUT_SHOULD_BE = "The following exception wasn't thrown: \"%1$s\", but should be.";
@@ -19,12 +20,17 @@ class Analyzer {
         return testFailed;
     }
 
+    public HashMap<String, String> getClassFailed() {
+        return classFailed;
+    }
+
     public void analyze(Class<?> clazz) {
         Object instance = null;
         try {
+            clazz.getName();
             instance = clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            assert(false);
+            classFailed.put(clazz.getName(), e.getMessage());
             return;
         }
 
@@ -33,11 +39,6 @@ class Analyzer {
 
     private ArrayList<Method> getMethodsOfAnnotationType(Method[] methods, Class classType) {
         ArrayList<Method> result = new ArrayList<Method>();
-        //Class classType = Before.class;
-        //if (type == AnnotationType.After) {
-        //    classType = After.class;
-        //}
-
         for (Method method : methods) {
             if (method.isAnnotationPresent(classType)) {
                 result.add(method);
@@ -71,21 +72,16 @@ class Analyzer {
                     continue;
                 }
 
+                boolean alreadyFailed = false;
                 try {
                     method.invoke(instance);
                     var expected = method.getAnnotation(Test.class).expected();
-                    boolean exceptionWasntThrown = expected.equals(Null.class);
-                    if (!exceptionWasntThrown) {
+                    boolean exceptionShouldntThrown = expected.equals(Null.class);
+                    if (!exceptionShouldntThrown) {
                         testFailed.put(method.getName(),
                                 String.format(EXCEPTION_WASNT_THROWN_BUT_SHOULD_BE, expected));
+                        alreadyFailed = true;
                     }
-                    try {//after
-                        processBeforeOrAfter(instance, methodsAfter);
-                    } catch (Throwable e) {
-                        testFailed.put(method.getName(), e.getMessage());
-                        continue;
-                    }
-                    testPassed.add(method.getName());
                 } catch (Throwable e) {
                     var expected = method.getAnnotation(Test.class).expected();
                     var current = e.getCause().getClass();
@@ -93,26 +89,24 @@ class Analyzer {
                     if (!expectedExceptionWasThrown) {
                         if (expected.equals(Null.class)) {
                             testFailed.put(method.getName(), e.getCause().getMessage());
+                            alreadyFailed = true;
                         } else {
                             testFailed.put(method.getName(),
                                     String.format(UNEXPECTED_EXCEPTION_ERROR_MESSAGE, expected, current));
+                            alreadyFailed = true;
                         }
                     }
-                    try {//after
-                        processBeforeOrAfter(instance, methodsAfter);
-                    } catch (Throwable e2) {
-                        if (expectedExceptionWasThrown) {
-                            testFailed.put(method.getName(), e2.getMessage());
-                        }
-                        continue;
-                    }
-                    testPassed.add(method.getName());
-
-
-
                 }
+                try {//after
+                    processBeforeOrAfter(instance, methodsAfter);
+                } catch (Throwable e2) {
+                    if (!alreadyFailed) {
+                        testFailed.put(method.getName(), e2.getMessage());
+                    }
+                    continue;
+                }
+                testPassed.add(method.getName());
             }
         }
     }
-
 }
