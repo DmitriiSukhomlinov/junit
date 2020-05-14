@@ -25,14 +25,14 @@ public class TestRunner {
         }
 
 
-        for (String arg : arguments) {
-            if ((arguments.indexOf(arg)) == 0) {
-                threadsNumber = Integer.parseInt(arg);
+        for (int i = 0; i < arguments.size(); i++) {
+            if (i == 0) {
+                threadsNumber = Integer.parseInt(arguments.get(i));
                 if (threadsNumber < 1) {
-                    throw new Exception("Threads number should be more then 1.");
+                    throw new Exception("Threads number should be more than 1.");
                 }
             } else {
-                testClasses.add(Class.forName(arg));
+                testClasses.add(Class.forName(arguments.get(i)));
             }
         }
 
@@ -41,7 +41,7 @@ public class TestRunner {
         }
 
         while (testingInProcess()) {
-            TestThread.sleep(10);
+            Thread.sleep(10);
         }
 
         printOutput();
@@ -72,7 +72,7 @@ public class TestRunner {
             }
         }
 
-        System.out.println("");
+        System.out.println();
         if (!testFailed.isEmpty()) {
             System.out.println("The following test are failed with errors:");
             for (String key : testFailed.keySet()) {

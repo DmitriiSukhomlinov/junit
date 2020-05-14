@@ -1,11 +1,11 @@
 package JUnit;
 
-public class TestThread extends java.lang.Thread {
-    private TestRunner runner = null;
+class TestThread extends Thread {
+    final private TestRunner runner;
 
-    public TestThread(TestRunner _runner) {
+    public TestThread(TestRunner runner) {
         super();
-        runner = _runner;
+        this.runner = runner;
     }
 
     @Override
